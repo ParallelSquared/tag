@@ -18,7 +18,7 @@ file_paths = [
 labels = ["Quenched Tag", "Hydrolyzed Tag", "Tagged Peptides"]
 colors = ["#1f77b4", "#d62728", "#2ca02c"] 
 
-plt.figure(figsize=(8, 6), dpi=300)  
+plt.figure(figsize=(5, 5), dpi=300)  
 
 for file_path, label, color in zip(file_paths, labels, colors):
     df = pd.read_csv(file_path, sep="\t", skiprows=3) # this skips metadata in first three lines
@@ -30,16 +30,15 @@ for file_path, label, color in zip(file_paths, labels, colors):
 
     plt.plot(df["Time"], df["Intensity"], label=label, color=color, linewidth=2, alpha=0.85)
 
-plt.xlabel("Time (min)", fontsize=16, fontweight="bold", fontname="serif")
-plt.ylabel("Intensity", fontsize=16, fontweight="bold", fontname="serif")
-plt.xticks(fontsize=14, fontname="serif")
-plt.yticks(fontsize=14, fontname="serif")
+plt.xlabel("Time (min)", fontsize=16, fontweight="bold", fontname="arial", labelpad=15)
+plt.ylabel("Intensity", fontsize=16, fontweight="bold", fontname="arial", labelpad=15)
+plt.xticks(fontsize=16, fontname="arial")
+plt.yticks(fontsize=16, fontname="arial")
 
 plt.xlim(10, 50)
 plt.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
 
-plt.title("Hydrolyzed and Quenched Tag Coelutes with Peptides", fontsize=18, fontweight="bold", fontname="serif")
-plt.legend(fontsize=16, frameon=False)
+plt.legend(fontsize=11.5, loc="upper right", frameon=False)
 
 plt.show()
 
