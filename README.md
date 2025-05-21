@@ -1,4 +1,4 @@
-## Article: )
+## Article:
 
 Using combinatorial chemistry and high-throughput screening, we developed a mass tag, called [PSMtag](https://www.biorxiv.org/), with the potential to allow simultaneously increasing proteome coverage and sample throughput for DIA workflows without compromising quantitative accuracy.
 
