@@ -1,6 +1,6 @@
-## Article: [PSMtags improve peptide sequencing and throughput in sensitive proteomics](https://www.biorxiv.org/)
+## Article: )
 
-Using combinatorial chemistry and high-throughput screening, we developed a mass tag, called PSMtag, with the potential to allow simultaneously increasing proteome coverage and sample throughput for DIA workflows without compromising quantitative accuracy.
+Using combinatorial chemistry and high-throughput screening, we developed a mass tag, called [PSMtag](https://www.biorxiv.org/), with the potential to allow simultaneously increasing proteome coverage and sample throughput for DIA workflows without compromising quantitative accuracy.
 
 <h2 style="letter-spacing: 2px; font-size: 26px;" id="data">
 
