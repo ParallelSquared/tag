@@ -14,7 +14,7 @@ All raw and processed data from the [article](https://www.biorxiv.org/) are orga
 Code:
 </h2>
 
-This repository contains the [Python](https://github.com/ParallelSquared/tag/tree/main/code/Python) and [R](https://github.com/ParallelSquared/tag/tree/main/code/R) scripts used to process mass spec results data and generate the figures included in the article.
+This repository contains the [Python](https://github.com/ParallelSquared/tag/tree/main/code/Python) and [R](https://github.com/ParallelSquared/tag/tree/main/code/R) scripts used to process data and generate figures for the article.
 
 <h2 style="letter-spacing: 2px; font-size: 26px;" id="media">
 
