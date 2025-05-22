@@ -8,7 +8,7 @@ Data:
 
 </h2>
 
-All raw and processed data from the [article](https://www.biorxiv.org/) are organized in this repository: [Google Drive](https://drive.google.com/drive/folders/1e5HyHTJ0USwCI7_qd8QLD7OMuaDi3J4Q?usp=sharing). The same data will be hosted in a MassIVE repository, coming soon. 
+All raw and processed data from the [article](https://www.biorxiv.org/) are organized in this data repositories: [MassIVE MSV000097968](http://massive.ucsd.edu/ProteoSAFe/status.jsp?task=4906b9cefe1c4aa29bfca03a27fb6a65) and [ProteomeXchange PXD064191](https://proteomecentral.proteomexchange.org/cgi/GetDataset?ID=PXD064191). 
 
 <h2 style="letter-spacing: 2px; font-size: 26px;" id="code">
 Code:
