@@ -22,4 +22,4 @@ Media:
 
 </h2>
 
-Miscellaneous information, including publically-available presentations about the [article](https://www.biorxiv.org/) are available through: [parallelsq.org/PSMtags](https://www.parallelsq.org/psmtags).
+Miscellaneous information, including publicly-available presentations about the [article](https://www.biorxiv.org/) are available through: [parallelsq.org/PSMtags](https://www.parallelsq.org/psmtags).
