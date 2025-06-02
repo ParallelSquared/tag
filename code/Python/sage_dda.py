@@ -2,56 +2,29 @@ import pandas
 from sys import argv
 import matplotlib.pyplot as plt
 from matplotlib_venn import venn2
+from utils import parse_sage
 import seaborn
 import numpy
 import os
 import re
 from collections import defaultdict
 
-plt.rcParams.update({'axes.labelsize': 12,
-                     'xtick.labelsize': 11,
-                     'ytick.labelsize': 11,
-                     'legend.fontsize': 11})
+plt.rcParams.update({'axes.titlesize': 14,
+                     'axes.labelsize': 14,
+                     'xtick.labelsize': 13,
+                     'ytick.labelsize': 13,
+                     'legend.fontsize': 13})
 
 BEST_PSM = True
 CTERM_FILTER = None
 Q_CUTOFF = 0.01
-
-def parse_sage(csv_path, tag_mass_min=80):
-    psms = pandas.read_csv(csv_path, delimiter='\t')
-    bare_sequences = []
-    varmod_masses = []
-    tags = []
-    num_tags = []
-    matched_peak_pcts = []
-    modmass_re = re.compile(r'\[(.*?)\]')
-    scans = []
-    for i, row in psms.iterrows():
-        scans.append(int(row['scannr'].split('scan=')[-1]))
-        bare_sequence = ''.join(c for c in row['peptide'] if c.isupper() and c.isalpha())
-        mod_masses = [float(s) for s in modmass_re.findall(row['peptide'])]
-        tag_masses = set([m for m in mod_masses if m>tag_mass_min])
-        num_tags.append(len([m for m in mod_masses if m>tag_mass_min]))
-        if len(tag_masses) == 0:
-            tags.append(0)
-        elif len(tag_masses) == 1:
-            [tag_mass] = tag_masses
-            tags.append(tag_mass)
-        else:
-            tags.append(-1)
-        bare_sequences.append(bare_sequence)
-        varmod_masses.append(mod_masses)
-        possible_ions = ((row['peptide_len']-1) * 2 * (row['charge']-1)) or 1
-        matched_peak_pcts.append((row['matched_peaks']/possible_ions) * 100)
-    psms = psms.assign(scan=scans, bare_sequence=bare_sequences, varmod_masses=varmod_masses, tag=tags, num_tags=num_tags, matched_peak_pct=matched_peak_pcts)
-    return psms
+TAG_NAME = 'PSMtag'
 
 def ion_key(ion):
     ion, z = ion.split('+')
     by = ion[0]
     ind = int(ion[1:])
     return (by, ind, z)
-
 
 #read Sage output results into concatenated DF
 psm_dfs = []
@@ -97,7 +70,7 @@ for i, row in psms.merge(ions, on=['filename', 'psm_id']).iterrows():
 missing_sites = []
 matched_pct = []
 for i, row in psms.iterrows():
-    missing_sites.append(len(row['bare_sequence'])-1 - len(psm_id2sites[(row['filename'], row['psm_id'])]))
+    missing_sites.append(row['peptide_len']-1 - len(psm_id2sites[(row['filename'], row['psm_id'])]))
     matched_pct.append(len(psm_id2frags[(row['filename'], row['psm_id'])])/((len(row['bare_sequence'])-1)*2)*100)
     for z in range(1, row['charge'] + 1):
         for series in ('b','y'):
@@ -118,14 +91,13 @@ if BEST_PSM:
 fig = plt.figure()
 plt.title('Unique peptide sequences')
 venn2([set(lf_psms['bare_sequence'].unique()), set(tagged_psms['bare_sequence'].unique())],
-      set_labels=['Label free', 'Tag6 labeled'],
+      set_labels=['Label free', f'{TAG_NAME} labeled'],
       set_colors=['steelblue', 'darkorange'])
 fig.set_size_inches(5,5)
 
 #perform intersection on (backbone sequence, charge)
-intersect = lf_psms.merge(tagged_psms, on=['bare_sequence','charge'])
+intersect = lf_psms.merge(tagged_psms, on=['untagged_sequence','charge'])
 intersect = intersect[intersect['filename_x'] != intersect['filename_y']]
-print('score delta=', numpy.median(intersect['hyperscore_y'] - intersect['hyperscore_x']))
 int_ratios = numpy.log10(intersect['intensity_y']/intersect['intensity_x'])
 score_ratios = numpy.log2(intersect['hyperscore_y']/intersect['hyperscore_x'])
 
@@ -139,19 +111,21 @@ n_all = len(int_ratios)
 #hexbin of intensity vs. score ratios
 fig = plt.figure()
 plt.hexbin(int_ratios, score_ratios, bins=50, mincnt=1, cmap='autumn')
-plt.title('Tag6 / unlabeled Human digest: intersected peptides')
+plt.title(f'{TAG_NAME} / label-free peptides')
 plt.xlabel('Ratio of precursor intensity, log₁₀')
 plt.ylabel('Ratio of score, log₂')
-plt.xlim(-4, 4)
+plt.xlim(-3.5, 3.5)
 plt.ylim(-2.5, 2.5)
 plt.axvline(0, color='gray', linestyle='--')
 plt.axhline(0, color='gray', linestyle='--')
-plt.gca().set_aspect(4/2.5)
+plt.gca().set_aspect(3.5/2.5)
 fig.set_size_inches(5,5)
-plt.text(-3.75, 2.25, f'n={q1}\n({(q1/n_all*100):.2f}%)', ha='left', va='top', fontsize=11, weight='bold')
-plt.text(3.75, 2.25, f'n={q2}\n({(q2/n_all*100):.2f}%)', ha='right', va='top', fontsize=11, weight='bold')
-plt.text(-3.75, -2.25, f'n={q3}\n({(q3/n_all*100):.2f}%)', ha='left', va='bottom', fontsize=11, weight='bold')
-plt.text(3.75, -2.25, f'n={q4}\n({(q4/n_all*100):.2f}%)', ha='right', va='bottom', fontsize=11, weight='bold')
+plt.text(-3.35, 2.35, f'n={q1}\n({(q1/n_all*100):.2f}%)', ha='left', va='top', fontsize=14, weight='bold')
+plt.text(3.35, 2.35, f'n={q2}\n({(q2/n_all*100):.2f}%)', ha='right', va='top', fontsize=14, weight='bold')
+plt.text(-3.35, -2.35, f'n={q3}\n({(q3/n_all*100):.2f}%)', ha='left', va='bottom', fontsize=14, weight='bold')
+plt.text(3.35, -2.35, f'n={q4}\n({(q4/n_all*100):.2f}%)', ha='right', va='bottom', fontsize=14, weight='bold')
+
+plt.xticks([-3,-2,-1,0,1,2,3])
 
 #fragment frequency plots for +1 and +2 fragment ions
 for z in (1, 2):
@@ -176,7 +150,7 @@ for z in (1, 2):
         fig.text(0.04, 0.5, '% of theoretical fragments observed', va='center', rotation='vertical', fontsize=12)
         ax.set_title(f'{series} ion series (+{z} charge state)')
         ax.bar(frag_names, frag_ratios_lf, label='Label free', width=-0.4, align='edge')
-        ax.bar(frag_names, frag_ratios, label='Tag6 labeled', width=0.4, align='edge')
+        ax.bar(frag_names, frag_ratios, label=f'{TAG_NAME} labeled', width=0.4, align='edge')
         ax.legend()
 
 #fragment intensity plots for +1 and +2 fragment ions 
@@ -202,7 +176,7 @@ for z in (1, 2):
         fig.text(0.04, 0.5, 'Mean % of TIC', va='center', rotation='vertical', fontsize=12)
         ax.set_title(f'{series} ion series (+{z} charge state)')
         ax.bar(frag_names, frag_ratios_lf, label='Label free', width=-0.4, align='edge')
-        ax.bar(frag_names, frag_ratios, label='Tag6 labeled', width=0.4, align='edge')
+        ax.bar(frag_names, frag_ratios, label=f'{TAG_NAME} labeled', width=0.4, align='edge')
         ax.legend()
 
 #fragmentation site coverage (intersected)
@@ -211,7 +185,7 @@ plt.title('Fragmentation site coverage (intersected peptides)')
 bins = numpy.arange(0,17,1)
 tagged_weights = [100/len(tagged_psms)]*len(tagged_psms)
 lf_weights = [100/len(lf_psms)]*len(lf_psms)
-plt.hist([intersect['missing_sites_x'], intersect['missing_sites_y']], label=['Label free', 'Tag6 labeled'], weights=[[100/len(intersect)]*len(intersect), [100/len(intersect)]*len(intersect)], bins=bins-0.5)
+plt.hist([intersect['missing_sites_x'], intersect['missing_sites_y']], label=['Label free', f'{TAG_NAME} labeled'], weights=[[100/len(intersect)]*len(intersect), [100/len(intersect)]*len(intersect)], bins=bins-0.5)
 fig.set_size_inches(5,5)
 plt.xticks(bins[:-1])
 plt.xlabel('Number of missing fragmentation sites')
@@ -220,12 +194,12 @@ plt.legend()
 
 #complete fragmentation site coverage vs. length (non-intersected)
 fig = plt.figure()
-plt.title('Complete fragmentation site coverage')
+plt.title('Fragmentation site coverage')
 pep_lens = list(range(6, 26))
 tagged_complete = [sum(tagged_psms[tagged_psms['peptide_len']==l]['missing_sites']==0)/(sum(tagged_psms['peptide_len']==l) or 1)*100 for l in pep_lens]
 lf_complete = [sum(lf_psms[lf_psms['peptide_len']==l]['missing_sites']==0)/(sum(lf_psms['peptide_len']==l) or 1)*100 for l in pep_lens]
 plt.plot(pep_lens, lf_complete, label='Label free')
-plt.plot(pep_lens, tagged_complete, label='Tag6 labeled')
+plt.plot(pep_lens, tagged_complete, label=f'{TAG_NAME} labeled')
 fig.set_size_inches(5,5)
 plt.xticks(pep_lens, [str(i) if i%2==0 else '' for i in pep_lens])
 plt.xlabel('Peptide length')
@@ -234,7 +208,7 @@ plt.legend()
 
 #gain in matched peaks histogram
 fig = plt.figure()
-plt.title('Tag6 gain in matched peaks (intersected peptides)')
+plt.title(f'Gain in matched peaks')# (intersected peptides)')
 bins = numpy.arange(-25,25,1)
 plt.hist(intersect['matched_peaks_y'] - intersect['matched_peaks_x'], weights=[100/len(intersect)]*len(intersect), bins=bins-0.5)
 fig.set_size_inches(5,5)
@@ -246,15 +220,13 @@ plt.legend()
 
 #density plot of % fragments matched
 fig = plt.figure()
-plt.title('Fragments matched (intersected peptides)')
+plt.title('Fragments matched')# (intersected peptides)')
 bins = numpy.arange(0,107.5,5)
-tagged_weights = [100/len(tagged_psms)]*len(tagged_psms)
-lf_weights = [100/len(lf_psms)]*len(lf_psms)
 seaborn.kdeplot(intersect['matched_pct_x'], fill=True, label='Label free', bw=0.2, clip=(0,100))
-seaborn.kdeplot(intersect['matched_pct_y'], fill=True, label='Tag6 labeled', bw=0.2, clip=(0,100))
+seaborn.kdeplot(intersect['matched_pct_y'], fill=True, label=f'{TAG_NAME} labeled', bw=0.2, clip=(0,100))
 fig.set_size_inches(5,5)
 plt.xticks(range(0,110,10))
-plt.xlabel('% of theoretical fragments matched')
+plt.xlabel('% theoretical fragments matched')
 plt.ylabel('Density')
 plt.legend()
 
@@ -262,14 +234,12 @@ plt.legend()
 fig = plt.figure()
 plt.title('MS2 intensity matched (intersected peptides)')
 bins = numpy.arange(0,107.5,5)
-tagged_weights = [100/len(tagged_psms)]*len(tagged_psms)
-lf_weights = [100/len(lf_psms)]*len(lf_psms)
 seaborn.kdeplot(intersect['matched_intensity_pct_x'], fill=True, label='Label free', bw=0.2, clip=(0,100))
-seaborn.kdeplot(intersect['matched_intensity_pct_y'], fill=True, label='Tag6 labeled', bw=0.2, clip=(0,100))
+seaborn.kdeplot(intersect['matched_intensity_pct_y'], fill=True, label=f'{TAG_NAME} labeled', bw=0.2, clip=(0,100))
 fig.set_size_inches(5,5)
 plt.xticks(range(0,110,10))
 plt.xlabel('% of MS2 intensity matched')
 plt.ylabel('Density')
 plt.legend()
-    
+
 plt.show()
