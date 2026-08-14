@@ -16,6 +16,33 @@ Code:
 
 This repository contains the [Python](https://github.com/ParallelSquared/tag/tree/main/code/Python) and [R](https://github.com/ParallelSquared/tag/tree/main/code/R) scripts used to process data and generate figures for the article.
 
+<details>
+<summary>Python instructions</summary>
+  <h3>Installing dependencies</h3>
+  Begin by installing the required packages:
+  
+  ```
+  pip install -r requirements.txt
+  ```
+
+  <h3>Producing DDA comparison plots (sage_dda.py)</h3>
+  This script reads Sage search results and renders plots comparing tagged vs. untagged peptide scoring and fragmentation. It takes arguments in the following format:
+  
+  ```
+  python3 sage_dda.py [LF_SAGE_RESULTS_PATH] [TAGGED_SAGE_RESULTS_PATH]
+  ```
+  where LF_SAGE_RESULTS_PATH and TAGGED_SAGE_RESULTS_PATH are paths to Sage output directories, which must contain:
+  - results.sage.tsv
+  - lfq.tsv
+  - matched_fragments.tsv
+
+To replicate publication figures, use the following Sage output directories provided in the MassIVE FTP repository MSV000097968:
+- search/search/LF_28 <i>(Tryptic label-free results, NCE28, Astral)</i>
+- search/search/LF_24 <i>(Tryptic label-free results, NCE24, Astral)</i>
+- search/search/T6_24 <i>(Tryptic PSMtag results, NCE24, Astral)</i>
+   
+</details>
+
 <h2 style="letter-spacing: 2px; font-size: 26px;" id="media">
 
 Media:
