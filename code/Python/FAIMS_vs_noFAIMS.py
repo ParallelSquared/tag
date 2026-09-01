@@ -12,19 +12,17 @@ import numpy as np
 from matplotlib.gridspec import GridSpec
 
 '''
-Define QualBrowser XIC paths
 
-1. Create dictionaries for "No FAIMS" (or "FAIMS-free") and "FAIMS" conditions
-2. Within the dictionary corresponding to each condition, provide separate keys for Tag Byproducts and Labeled Peptides
-3. Add XIC paths accordingly
-
-Note for Tag Byproducts: expected masses of the quenched and hydrolyzed tag products were searched for at the MS1 level. 
-These traces were exported as .csv and plotted. 
-
-Note for Labeled Peptides: all peaks were extracted at the MS1 level. These traces were exported as .csv and plotted. 
+This figure shows the impact of FAIMS on the coelution of tag byproducts with tagged peptides. 
+In the upper left corner, XIC of the tag byproducts are shown with the XIC of tagged peptides without FAIMS. 
+In the bottom left corner, XIC of the tag byproducts are shown with the XIC of tagged peptides with FAIMS. 
+In the upper right corner, peak area of the tag byproducts are compared across FAIMS and No FAIMS conditions. 
+In the bottom right corner, MS1 intensities of intersected precursors (found in FAIMS and No FAIMS conditions) are compared
+in a histogram. 
 
 '''
 
+# Define QualBrowser XIC paths
 file_groups_FAIMS_free = {
     "FAIMS-free Tag Byproducts": [
         "/Volumes/Lab/MY/2025-03-05_T6_publication_fig/TaginFAIMS_vsnoFAIMS/QualBrowserXICHydrolyzedProd_FAIMS-free_MS1_d8.txt",
@@ -45,6 +43,13 @@ file_groups_FAIMS_45 = {
     ]
 }
 
+'''
+Note for Tag Byproducts: expected masses of the quenched and hydrolyzed tag products were searched for at the MS1 level. 
+These traces were exported as .csv and plotted. 
+
+Note for Labeled Peptides: all peaks were extracted at the MS1 level. These traces were exported as .csv and plotted. 
+'''
+
 # Set colors for each condition to be preserved throughout the entire figure
 colors = {
     "FAIMS-45 Tag Byproducts": "#1f77b4", # BLUE
@@ -59,7 +64,7 @@ peak_areas = {
     "Hydrolyzed Tag": {"FAIMS-45 Tag Byproducts": 0, "FAIMS-free Tag Byproducts": 91103635},
 }
 
-# Load evidence data (MaxQuant evidence.txt) and filter by confidence interval and intensity > 0
+# Load evidence data for MS1 intensity histogram (MaxQuant evidence.txt) and filter by confidence interval and intensity > 0
 evidence = pd.read_csv('/Volumes/Lab/MY/2025-03-05_T6_publication_fig/TaginFAIMS_vsnoFAIMS/combined/txt/evidence.txt', sep="\t")
 evidence = evidence[evidence['Intensity'] > 0]
 evidence = evidence[evidence['PEP'] <= 0.01]
@@ -68,7 +73,7 @@ evidence = evidence[evidence['PEP'] <= 0.01]
 MS1_intensity_FAIMS_free = evidence[evidence['Raw file'].str.contains("FAIMS-Free-Tag6-d8_5ng_regMR", na=False)]
 MS1_intensity_FAIMS = evidence[evidence['Raw file'].str.contains("FAIMS-45-Tag6-d8_5ng_regMR", na=False)]
 
-# Determine which peptides are shared between "No FAIMS" (or "FAIMS-free") and "FAIMS" conditions
+# Determine which peptides are shared between "No FAIMS" (or "FAIMS-free") and "FAIMS" conditions (SEQUENCE INTERSECTION)
 shared_precursors = set(MS1_intensity_FAIMS_free['Modified sequence']) & set(MS1_intensity_FAIMS['Modified sequence'])
 
 # Filter each dataframe to only contain peptides found in common between conditions
@@ -118,23 +123,31 @@ for label, file_paths in file_groups_FAIMS_free.items():
     else:
         ax1.plot(combined_df["Time"], combined_df["Intensity"], color=colors[label], linewidth=3, alpha=0.7)  # No label
 
-ax1.set_xlabel("Time (min)", fontsize=16, fontweight="bold", fontname="Arial")
-ax1.set_ylabel("Intensity", fontsize=16, fontweight="bold", fontname="Arial", color="black", labelpad=10)
+ax1.set_xlabel("Time (min)", fontsize=16, fontname="Arial")
+ax1.set_ylabel("Intensity", fontsize=16, fontname="Arial", color="black", labelpad=10)
 ax1.set_ylim(-0.15e8,3.5e8)
 ax1.tick_params(axis='y', labelcolor="black", labelsize=13)
 ax1.tick_params(axis='x', labelcolor="black", labelsize=13)
 ax1.set_xlim(5, 40)
-ax1.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
-ax1.set_title("No FAIMS Chromatogram", fontsize=16, fontweight="bold", fontname="Arial")
+#ax1.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+ax1.set_title("No FAIMS Chromatogram", fontsize=16, fontname="Arial")
 
 # Annotate the leftmost peak as 'Quenched'
-ax1.text(18, 2.35e8, "Quenched Tag", 
-         fontsize=14, fontweight="bold", fontname="Arial", 
+ax1.text(18, 2.65e8, "Quenched Tag", 
+         fontsize=14, fontname="Arial", 
+         ha="right", va="bottom", color="black")
+
+ax1.text(18, 2.35e8, "342.1494 m/z", 
+         fontsize=14, fontname="Arial", 
          ha="right", va="bottom", color="black")
 
 # Annotate the rightmost peak as 'Hydrolyzed'
-ax1.text(12, 0.55e8, "Hydrolyzed Tag", 
-         fontsize=14, fontweight="bold", fontname="Arial", 
+ax1.text(11.5, 0.85e8, "Hydrolyzed Tag", 
+         fontsize=14, fontname="Arial", 
+         ha="left", va="bottom", color="black")
+
+ax1.text(12, 0.55e8, "327.1347 m/z", 
+         fontsize=14, fontname="Arial", 
          ha="left", va="bottom", color="black")
 
 ax1.legend(loc="upper right", fontsize=12, frameon=False)
@@ -178,14 +191,14 @@ for label, file_paths in file_groups_FAIMS_45.items():
     else:
         ax2.plot(combined_df["Time"], combined_df["Intensity"], color=colors[label], linewidth=2, alpha=0.7, zorder=5)  # No label
 
-ax2.set_xlabel("Time (min)", fontsize=16, fontweight="bold", fontname="Arial")
-ax2.set_ylabel("Intensity", fontsize=16, fontweight="bold", fontname="Arial", color="black", labelpad=10)
+ax2.set_xlabel("Time (min)", fontsize=16, fontname="Arial")
+ax2.set_ylabel("Intensity", fontsize=16, fontname="Arial", color="black", labelpad=10)
 ax2.set_ylim(-0.075e7,1.75e7)
 ax2.tick_params(axis='y', labelcolor="black", labelsize=13)
 ax2.tick_params(axis='x', labelcolor="black", labelsize=13)
 ax2.set_xlim(5, 40)
-ax2.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
-ax2.set_title("FAIMS Chromatogram", fontsize=16, fontweight="bold", fontname="Arial")
+#ax2.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+ax2.set_title("FAIMS Chromatogram", fontsize=16, fontname="Arial")
 ax2.legend(loc="upper right", fontsize=12, frameon=False)
 
 
@@ -208,8 +221,8 @@ ax3.set_yscale("log")  # <-- Log scale for peak areas
 ax3.set_ylim(-1e7,5e10)
 ax3.set_xticks(x)
 ax3.tick_params(axis='y', labelcolor="black", labelsize=13)
-ax3.set_xticklabels(["Quenched\nTag", "Hydrolyzed\nTag"], fontsize=16, fontweight="bold", fontname="Arial", ha="center")
-ax3.set_ylabel("Peak Area, log$_{10}$", fontsize=16, fontweight="bold", fontname="Arial", labelpad=7)
+ax3.set_xticklabels(["Quenched\nTag", "Hydrolyzed\nTag"], fontsize=16, fontname="Arial", ha="center")
+ax3.set_ylabel("Peak Area, log$_{10}$", fontsize=16, fontname="Arial", labelpad=7)
 ax3.legend(fontsize=13, loc="upper right", frameon=False)
 ax3.spines["top"].set_visible(False)
 ax3.spines["right"].set_visible(False)
@@ -228,8 +241,8 @@ ax4.hist(np.log10(shared_df_FAIMS["Intensity"]), alpha=0.7, bins=30, color=color
 ax4.tick_params(axis='y', labelcolor="black", labelsize=13)
 ax4.tick_params(axis='x', labelcolor="black", labelsize=13)
 ax4.set_ylabel("MS1 Intensity Intersected\nPrecursors, log$_{10}$", 
-               fontsize=16, fontweight="bold", fontname="Arial", labelpad=10)
-ax4.set_xlabel("Density", fontsize=16, fontweight="bold", fontname="Arial")
+               fontsize=16, fontname="Arial", labelpad=10)
+ax4.set_xlabel("Density", fontsize=16, fontname="Arial")
 
 
 ################################################################################
